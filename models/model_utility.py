@@ -2,6 +2,7 @@ import time
 import torch.nn as nn
 import torch.optim as optim
 import torch
+import torchviz
 
 
 def train_network(network, trainloader, epochs, device):
@@ -59,3 +60,11 @@ def test_network(network, testloader, device):
             correct += (predicted == labels).sum().item()
 
     print('Accuracy of the network on the 10000 test images: %d %%' % (100 * correct / total))
+
+
+def visualize_network(network, dataloader):
+    print(network)
+    dataiter = iter(dataloader)
+    x_batch, y_batch = dataiter.next()
+    out = network(x_batch)
+    torchviz.make_dot(out).render("output/network_viz", format="png")

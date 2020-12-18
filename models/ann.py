@@ -1,0 +1,45 @@
+import torch
+import torch.nn as nn
+import torch.nn.functional as F
+
+
+class FullyConnectedNetwork(nn.Module):
+    """ A fully connected network with architecture given by params.
+    logits output (not softmaxed)
+    """
+    def __init__(self, params):
+        super(FullyConnectedNetwork, self).__init__()
+
+        self.layers = nn.ModuleList()
+
+        input_nodes = params['ann_input_nodes']
+        output_nodes = params['output_nodes']
+        layer_nodes = params['ann_layer_units']
+        activations = params['ann_layer_activations']
+        dropouts = params['ann_layer_dropout_rates']
+
+        assert len(layer_nodes) == len(activations)
+        assert len(layer_nodes) == len(dropouts)
+
+        prev_layer_nodes = input_nodes
+        for i in range(len(layer_nodes)):
+            nodes = layer_nodes[i]
+            fc = nn.Linear(prev_layer_nodes, nodes)
+            assert activations[i] == 'relu' # Only ReLU supported for now
+            relu = nn.ReLU()
+            dropout = nn.Dropout(dropouts[i])
+            prev_layer_nodes = nodes
+            self.layers.extend([fc, relu, dropout])
+
+        # Output layer
+        self.out = nn.Linear(prev_layer_nodes, output_nodes)
+        self.layers.append(self.out)
+        # print(self.layers)
+
+    def forward(self, x):
+        x = x.view(x.size(0), -1)   # Flatten image into a vector
+
+        for layer in self.layers:
+            x = layer(x)
+
+        return x
