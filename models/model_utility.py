@@ -5,25 +5,34 @@ import torch
 import torchviz
 
 
-def train_network(network, trainloader, epochs, device):
+def train_network(network, trainset, epochs, batch_size, device):
     criterion = nn.CrossEntropyLoss()
-    optimizer = optim.SGD(network.parameters(), lr=0.001, momentum=0.9)
+    # optimizer = optim.SGD(network.parameters(), lr=0.001, momentum=0.9)
+    optimizer = optim.Adam(network.parameters())
 
     t0 = time.time()
 
+    X_train = trainset.tensors[0]
+    y_train = trainset.tensors[1]
+
+    # Move model and full dataset to device upfront (may fail for large models and datasets)
     network.to(device)
+    X_train.to(device)
+    y_train.to(device)
 
     # Some variables for stat printing
-    num_samples = trainloader.dataset.data.shape[0]
-    batch_size = trainloader.batch_size
+    num_samples = X_train.shape[0]
     num_batches = num_samples // batch_size
-    batch_interval = num_batches // 10
+    batch_interval = num_batches // 1
 
-    for epoch in range(epochs):  # loop over the dataset multiple times
+    print('Training neural network')
+    for epoch in range(epochs):  # loop over the dataset multiple epochs
+        shuffled_indices = torch.randperm(num_samples)
         running_loss = 0.0
-        for i, data in enumerate(trainloader):
-            inputs, labels = data
-            inputs, labels = inputs.to(device), labels.to(device)
+        for j in range(0, num_samples, batch_size):
+            indices = shuffled_indices[j: j + batch_size]
+            inputs = X_train[indices]
+            labels = y_train[indices]
 
             optimizer.zero_grad()   # To prevent gradient accumulation
 
@@ -35,36 +44,37 @@ def train_network(network, trainloader, epochs, device):
 
             # print statistics
             running_loss += loss.item()
-            if i % batch_interval == 0:  # print every batch_interval mini-batches
+            if j % batch_interval == 0:  # print every batch_interval mini-batches
                 print('[epoch: %d, batch: %5d] loss: %.3f' %
-                      (epoch + 1, i + 1, running_loss / 2000))
+                      (epoch + 1, j + 1, running_loss / 2000))
                 running_loss = 0.0
 
     time_to_train = time.time() - t0
     print('Finished Training. Time taken: {:.2f} sec, {:.2f} min'.format(time_to_train, time_to_train / 60))
 
 
-def test_network(network, testloader, device):
+def test_network(network, testset, device):
+    X_test = testset.tensors[0]
+    y_test = testset.tensors[1]
+
+    # Move model and full dataset to device upfront (may fail for large models and datasets)
     network.to(device)
+    X_test.to(device)
+    y_test.to(device)
 
-    correct = 0
-    total = 0
+    num_samples = X_test.shape[0]
+
     with torch.no_grad():   # We do not intend to call backward(), as we don't backprop and optimize
-        for data in testloader:
-            inputs, labels = data
-            inputs, labels = inputs.to(device), labels.to(device)
+        # Assume we can do predictions for the entire test set (may fail for large test sets)
+        outputs = network(X_test)
+        _, y_pred = torch.max(outputs.data, 1)
+        correct_preds = (y_pred == y_test).sum().item()
 
-            outputs = network(inputs)
-            _, predicted = torch.max(outputs.data, 1)
-            total += labels.size(0)
-            correct += (predicted == labels).sum().item()
-
-    print('Accuracy of the network on the 10000 test images: %d %%' % (100 * correct / total))
+    print('Accuracy of the network on the 10000 test images: %d %%' % (100 * correct_preds / num_samples))
 
 
-def visualize_network(network, dataloader):
+def visualize_network(network, dataset):
     print(network)
-    dataiter = iter(dataloader)
-    x_batch, y_batch = dataiter.next()
-    out = network(x_batch)
+    X_all = dataset.tensors[0]
+    out = network(X_all[0])
     torchviz.make_dot(out).render("output/network_viz", format="png")

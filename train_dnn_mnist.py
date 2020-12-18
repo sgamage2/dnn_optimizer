@@ -9,12 +9,13 @@ from models.model_utility import train_network, test_network, visualize_network
 params = {}
 params['data_dir'] = 'data'
 params['device'] = 'cpu'    # cpu, cuda
-params['epochs'] = 1
-params['batch_size'] = 4096
+params['epochs'] = 20
+params['batch_size'] = 256
 
 params['ann_input_nodes'] = 28 * 28
 params['output_nodes'] = 10
-params['ann_layer_units'] = [64, 32, 16]
+# params['ann_layer_units'] = [64, 32, 16]
+params['ann_layer_units'] = [128, 64]
 params['ann_layer_activations'] = ['relu', 'relu', 'relu']
 params['ann_layer_dropout_rates'] = [0.2, 0.2, 0.2]
 
@@ -32,7 +33,7 @@ def main():
 
     # ------------------------
     # Load data
-    trainloader, testloader = data_prep.get_mnist_data_loaders(params['data_dir'], params['batch_size'])
+    trainset, testset = data_prep.get_mnist_preprocessed(params['data_dir'], params['batch_size'])
     # display_images(trainloader)
 
     # ------------------------
@@ -40,12 +41,12 @@ def main():
     # cnn_net = CNN_Network()
     # cnn_net = FixedFullyConnectedNetwork(input_size=28*28, output_size=10)
     cnn_net = FullyConnectedNetwork(params)
-    visualize_network(cnn_net, trainloader)
-    train_network(cnn_net, trainloader, params['epochs'], device)
+    visualize_network(cnn_net, trainset)
+    train_network(cnn_net, trainset, params['epochs'], params['batch_size'], device)
 
     # ------------------------
     # Test model
-    test_network(cnn_net, testloader, device)
+    test_network(cnn_net, testset, device)
 
 
 if __name__ == '__main__':

@@ -18,8 +18,8 @@ class FullyConnectedNetwork(nn.Module):
         activations = params['ann_layer_activations']
         dropouts = params['ann_layer_dropout_rates']
 
-        assert len(layer_nodes) == len(activations)
-        assert len(layer_nodes) == len(dropouts)
+        assert len(layer_nodes) <= len(activations)
+        assert len(layer_nodes) <= len(dropouts)
 
         prev_layer_nodes = input_nodes
         for i in range(len(layer_nodes)):
