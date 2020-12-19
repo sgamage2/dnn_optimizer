@@ -43,3 +43,11 @@ class FullyConnectedNetwork(nn.Module):
             x = layer(x)
 
         return x
+
+    def group_params_by_layer(self):
+        """ Create a param group (dictionary) per layer """
+        param_groups = []
+        for layer in self.layers:
+            if type(layer) == nn.Linear:
+                param_groups.append({"params": layer.parameters()})
+        return param_groups
