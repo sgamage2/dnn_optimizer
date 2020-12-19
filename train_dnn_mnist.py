@@ -8,8 +8,8 @@ from models.model_utility import train_network, test_network, visualize_network
 
 params = {}
 params['data_dir'] = 'data'
-params['device'] = 'cpu'    # cpu, cuda
-params['epochs'] = 20
+params['device'] = 'cuda'    # cpu, cuda
+params['epochs'] = 10
 params['batch_size'] = 256
 
 params['ann_input_nodes'] = 28 * 28

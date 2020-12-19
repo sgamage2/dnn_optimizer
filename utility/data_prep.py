@@ -39,7 +39,8 @@ def get_mnist_data_loaders(data_dir, batch_size):
 def get_mnist_preprocessed(data_dir, batch_size):
     transform = transforms.Compose(
         [transforms.ToTensor(),     # Convert PIL image to tensor
-         transforms.Normalize((0.5), (0.5))])   # (mean1, mean2, mean3), (std1, std2, std3) for the 3 channels
+         transforms.Normalize((0.5), (0.5)),       # (mean1, mean2, mean3), (std1, std2, std3) for the 3 channels
+         ])
 
     print('Preprocessing MNIST training set')
     trainset = torchvision.datasets.MNIST(root=data_dir, train=True, download=True, transform=transform)
