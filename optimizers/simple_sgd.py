@@ -21,11 +21,6 @@ class SimpleSGD(Optimizer):
     def step(self, closure=None):
         """Performs a single optimization step.
         """
-        loss = None
-        if closure is not None:
-            with torch.enable_grad():
-                loss = closure()
-
         for group in self.param_groups:
             lr = group['lr']
             for p in group['params']:
@@ -34,4 +29,5 @@ class SimpleSGD(Optimizer):
                 d_p = p.grad
                 p.add_(d_p, alpha=-lr)      # SGD update rule: p = p - lr * d_p
 
+        loss = None
         return loss
