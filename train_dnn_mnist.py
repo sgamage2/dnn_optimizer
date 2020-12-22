@@ -11,6 +11,7 @@ params['data_dir'] = 'data'
 params['device'] = 'cuda'    # cpu, cuda
 params['epochs'] = 10
 params['batch_size'] = 256
+params['optimizer'] = 'sgd' # sgd, adam, entropy ...
 
 params['ann_input_nodes'] = 28 * 28
 params['output_nodes'] = 10

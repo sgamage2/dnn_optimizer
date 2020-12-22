@@ -25,7 +25,7 @@ class FullyConnectedNetwork(nn.Module):
         for i in range(len(layer_nodes)):
             nodes = layer_nodes[i]
             fc = nn.Linear(prev_layer_nodes, nodes)
-            assert activations[i] == 'relu' # Only ReLU supported for now
+            assert activations[i] == 'relu' # Only ReLU is supported for now
             relu = nn.ReLU()
             dropout = nn.Dropout(dropouts[i])
             prev_layer_nodes = nodes

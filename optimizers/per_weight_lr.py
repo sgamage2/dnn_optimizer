@@ -19,7 +19,7 @@ class PerWeightLR(Optimizer):
             for p in group['params']:
                 state = self.state[p]   # A dict that keeps state of each Parameter obj (biases and weights of layers)
                 state['step'] = 0
-                state['lr'] = torch.full_like(p, lr)    # A Tensor of same shape as Parameter filled with initial lr
+                state['lr'] = torch.full_like(p, lr)    # A Tensor of same shape as Parameter p filled with initial lr
 
     @torch.no_grad()
     def step(self, closure=None):
@@ -33,6 +33,8 @@ class PerWeightLR(Optimizer):
 
                 state = self.state[p]
                 per_weight_lr = state['lr']
+                assert p.shape == per_weight_lr.shape
+
                 weight_change = -per_weight_lr * d_p    # Tensor of same shape as p and d_p
 
                 # For inplace multiplication, we can do per_weight_lr.mul(-d_p)

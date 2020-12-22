@@ -5,6 +5,7 @@ import torch
 import torchviz
 import optimizers.simple_sgd
 import optimizers.per_weight_lr
+import optimizers.per_neuron_lr
 
 
 def train_network(network, trainset, epochs, batch_size, device):
@@ -18,10 +19,12 @@ def train_network(network, trainset, epochs, batch_size, device):
     y_train = y_train.to(device)
 
     criterion = nn.CrossEntropyLoss()
+
+    # ToDo: create an optimizer based on a config
     # optimizer = optim.SGD(network.parameters(), lr=0.001, momentum=0.9)
     # optimizer = optim.SGD(network.parameters(), lr=0.01)  # SGD without momentum (to compare with SimpleSGD)
     # optimizer = optim.Adam(network.parameters())
-    optimizer = optim.Adagrad(network.parameters())
+    # optimizer = optim.Adagrad(network.parameters())
 
     # # Create parameter groups and assign learning rates to them
     # param_groups = network.group_params_by_layer()
@@ -29,9 +32,9 @@ def train_network(network, trainset, epochs, batch_size, device):
     # for group, lr in zip(param_groups, layer_lrs):
     #     group['lr'] = lr
 
-    # optimizer = optimizers.simple_sgd.SimpleSGD(param_groups, lr=0.01)
-
-    optimizer = optimizers.per_weight_lr.PerWeightLR(network.parameters(), lr=0.01)
+    optimizer = optimizers.simple_sgd.SimpleSGD(param_groups, lr=0.01)
+    # optimizer = optimizers.per_weight_lr.PerWeightLR(network.parameters(), lr=0.01)
+    # optimizer = optimizers.per_neuron_lr.PerNeuronLR(network.parameters(), lr=0.01)
 
 
     # Some variables for stat printing
@@ -62,7 +65,7 @@ def train_network(network, trainset, epochs, batch_size, device):
             #     print('[epoch: %d, batch: %5d] loss: %.3f' %
             #           (epoch + 1, j + 1, running_loss / 2000))
             #     running_loss = 0.0
-        print('[epoch: {}]: loss: {:.3f}'.format(epoch + 1, loss.item()))
+        print('[epoch: {}] loss: {:.3f}'.format(epoch + 1, loss.item()))
 
     time_to_train = time.time() - t0
     print('Finished Training. Time taken: {:.2f} sec, {:.2f} min'.format(time_to_train, time_to_train / 60))
