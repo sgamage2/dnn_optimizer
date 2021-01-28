@@ -39,6 +39,8 @@ def train_network(network, trainset, params, device):
 
     print('Training neural network')
     for epoch in range(epochs):  # loop over the dataset multiple epochs
+        optimizer.on_epoch_start()
+
         epoch_start_time = time.time()
         shuffled_indices = torch.randperm(num_samples)
         train_loss_epoch = 0.0
@@ -64,7 +66,6 @@ def train_network(network, trainset, params, device):
             #           (epoch + 1, j + 1, running_loss / 2000))
             #     running_loss = 0.0
 
-        optimizer.on_epoch_end()
 
         train_loss_epoch = float(train_loss_epoch / num_batches)
         train_loss_hist.append(train_loss_epoch)

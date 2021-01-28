@@ -12,7 +12,7 @@ from pprint import pformat
 params = {}
 params['data_dir'] = 'data'
 params['device'] = 'cpu'    # cpu, cuda
-params['epochs'] = 50
+params['epochs'] = 10
 params['batch_size'] = 20 # 256
 params['optimizer'] = 'entropy_per_layer'     # sgd, sgd_momentum, adagrad, adam, entropy_per_layer, entropy_per_neuron ...
 params['learning_rate'] = 0.1
@@ -30,6 +30,8 @@ params['ann_layer_dropout_rates'] = [0.0, 0.0, 0.0]
 def main():
     # ------------------------
     # Init
+    torch.manual_seed(123)
+
     print('Experiment parameters')
     print(pformat(params))
 

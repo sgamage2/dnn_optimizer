@@ -36,7 +36,7 @@ class EntropyPerLayer(Optimizer):
         loss = None
         return loss
 
-    def on_epoch_end(self):
+    def on_epoch_start(self):
         """Performs things such as updating learning rate based on entropy.
         This method should be called in the training loop at the end of every epoch
         """
@@ -47,9 +47,6 @@ class EntropyPerLayer(Optimizer):
 
             params_list = []
             for p in group['params']:  # p = params. A Parameter object with biases or weights of a layer
-                if p.grad is None:
-                    continue
-
                 # Convert Parameter to numpy array (because entropies are computed with numpy operations)
                 np_arr = p.cpu().detach().numpy()
                 if len(np_arr.shape) == 1:
@@ -57,6 +54,7 @@ class EntropyPerLayer(Optimizer):
                 params_list.append(np_arr)
 
             # params_list has the bias vector (L x 1) and weights matrix (L x L_prev) --> concatenate cols
+            # if len(params_list) > 0:
             weights = np.concatenate(params_list, axis=1)
             ent = entropy.get_entropy(weights)
 
