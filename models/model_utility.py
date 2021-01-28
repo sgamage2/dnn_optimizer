@@ -26,7 +26,7 @@ def train_network(network, trainset, params, device):
     y_train = y_train.to(device)
 
     criterion = nn.CrossEntropyLoss()
-    optimizer = create_optimizer(optimizer_name, network, learning_rate)
+    optimizer = create_optimizer(optimizer_name, network, params)
 
     # Some variables for stat printing
     num_samples = X_train.shape[0]
@@ -86,15 +86,14 @@ def train_network(network, trainset, params, device):
 
     history = {'train_loss': train_loss_hist}
 
-    ent_hist = optimizer.get_entropy_history()
+    ent_hist, lr_hist = optimizer.get_history()
     history['per_layer_entropy'] = ent_hist
+    history['per_layer_learning_rate'] = lr_hist
 
     # history['damith_entropies'] = damith_ents_hist
 
     time_to_train = time.time() - t0
     print('Finished Training. Time taken: {:.2f} sec, {:.2f} min'.format(time_to_train, time_to_train / 60))
-
-    optimizer.print_stuff()
 
     return history
 
@@ -127,7 +126,8 @@ def visualize_network(network, dataset):
     torchviz.make_dot(out).render("output/network_viz", format="png")
 
 
-def create_optimizer(optimizer_name, network, learning_rate):
+def create_optimizer(optimizer_name, network, params):
+    learning_rate = params['learning_rate']
     if optimizer_name == 'sgd':
         optimizer = optim.SGD(network.parameters(), lr=learning_rate)  # SGD without momentum
     elif optimizer_name == 'momentum':
@@ -147,7 +147,8 @@ def create_optimizer(optimizer_name, network, learning_rate):
         param_groups = network.group_params_by_layer()
         for group in param_groups:
             group['lr'] = learning_rate
-        optimizer = optimizers.entropy_per_layer.EntropyPerLayer(param_groups, lr=learning_rate)
+        beta = params['ent_beta']
+        optimizer = optimizers.entropy_per_layer.EntropyPerLayer(param_groups, lr=learning_rate, beta=beta)
     elif optimizer_name == 'entropy_per_neuron':
         assert False
     else:

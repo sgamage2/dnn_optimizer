@@ -38,6 +38,8 @@ def get_entropy(weights):
     return entropy
 
 
+# Given a network, compute entropy of weights of each layer
+# Copied here for comparison purposes
 def get_entropies_damith(net, epoch):
     entropies = []
     layer = 0
@@ -60,8 +62,7 @@ def get_entropies_damith(net, epoch):
                     # assert False   # Debugging
                     total_data += [z]
 
-
-        if (len(total_data) > 0):
+        if len(total_data) > 0:
             # print("Length of layer = ", len(total_data))
             hist = np.histogram(np.array(total_data), bins=30)  # getting the histogram
             # print(hist)

@@ -10,13 +10,15 @@ from utility import entropy
 
 
 class EntropyPerLayer(Optimizer):
-    def __init__(self, params, lr):
+    def __init__(self, params, lr, beta):
         assert lr > 0
         defaults = dict(lr=lr)
         super(EntropyPerLayer, self).__init__(params, defaults)
 
         for group in self.param_groups:
             group['entropy_hist'] = []
+            group['lr_hist'] = []   # Keep a history of learning rates (for debugging)
+            group['beta'] = beta
 
     @torch.no_grad()
     def step(self, closure=None):
@@ -42,8 +44,8 @@ class EntropyPerLayer(Optimizer):
         """
         # The params are in Parameter objects. Each layer has 2 Parameter objects (biases and weights)
         for group in self.param_groups:  # Each group is a layer
-            lr = group['lr']
             entropy_hist = group['entropy_hist']
+            lr_hist = group['lr_hist']
 
             params_list = []
             for p in group['params']:  # p = params. A Parameter object with biases or weights of a layer
@@ -60,22 +62,40 @@ class EntropyPerLayer(Optimizer):
 
             # print(ent)
             # print(lr)
-
-            if len(entropy_hist) != 0:
-                ent_diff = ent - entropy_hist[-1]
-                # print(ent_diff)
-                # group['lr'] = lr * ent_diff
-
             entropy_hist.append(ent)
+            lr_hist.append(group['lr'])
 
-    def get_entropy_history(self):
+        self._update_learning_rates()
+
+    def get_history(self):
         entropy_history = {}
+        lr_history = {}
         for l, group in enumerate(self.param_groups): # Each group is a layer
             entropy_history[l] = group['entropy_hist']
-        return entropy_history
+            lr_history[l] = group['lr_hist']
+        return entropy_history, lr_history
 
-    def print_stuff(self):
-        for group in self.param_groups: # Each group is a layer
-            lr = group['lr']
+    def _update_learning_rates(self):
+        num_layers = len(self.param_groups)
+        en_diff_sum = 0.0
+
+        # Iterate over layers to compute average entropy
+        for group in self.param_groups:  # Each group is a layer
             entropy_hist = group['entropy_hist']
-            # print(entropy_hist)
+            if len(entropy_hist) >= 2:
+                en_diff = abs(entropy_hist[-1] - entropy_hist[-2])  # Diff between last 2 values
+                en_diff_sum += en_diff
+
+        avg_en_diff = en_diff_sum / num_layers
+
+        # Iterate over layers to update learning rates
+        for group in self.param_groups:  # Each group is a layer
+            entropy_hist = group['entropy_hist']
+            beta = group['beta']
+
+            if len(entropy_hist) >= 2:
+                en_diff = abs(entropy_hist[-1] - entropy_hist[-2])
+                en_diff = (en_diff + avg_en_diff) / avg_en_diff
+                coeff = (en_diff * beta) / (1 + en_diff * beta)
+                group['lr'] *= coeff
+

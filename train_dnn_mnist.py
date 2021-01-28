@@ -16,6 +16,7 @@ params['epochs'] = 10
 params['batch_size'] = 20 # 256
 params['optimizer'] = 'entropy_per_layer'     # sgd, sgd_momentum, adagrad, adam, entropy_per_layer, entropy_per_neuron ...
 params['learning_rate'] = 0.1
+params['ent_beta'] = 1  # Param for entropy_per_layer optimizer (for learning rule update)
 
 params['ann_input_nodes'] = 28 * 28
 params['output_nodes'] = 10
@@ -61,6 +62,7 @@ def main():
     # Visualization
     evaluation.plot_training_history(history)
     evaluation.plot_entropy_history(history)
+    evaluation.plot_lr_history(history)
 
     # ------------------------
     # Test model

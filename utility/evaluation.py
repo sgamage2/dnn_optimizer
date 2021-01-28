@@ -56,3 +56,22 @@ def plot_entropy_history(history):
     plt.xlabel("Epoch")
     plt.ylabel("Entropy (bits)")
     plt.legend(loc='upper right')
+
+
+def plot_lr_history(history):
+    print('Plotting learning rate history')
+    if history is None or 'per_layer_learning_rate' not in history:
+        return False
+
+    fig = plt.figure()
+    common.add_figure_to_save(fig, 'lr_history')
+
+    layer_lrs = history['per_layer_learning_rate']
+
+    for layer, lr_hist in layer_lrs.items():
+        plt.plot(lr_hist, label='Layer {}'.format(layer))
+
+    plt.title("Learning rate history")
+    plt.xlabel("Epoch")
+    plt.ylabel("Learning rate")
+    plt.legend(loc='upper right')
