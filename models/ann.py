@@ -32,8 +32,11 @@ class FullyConnectedNetwork(nn.Module):
             self.layers.extend([fc, relu, dropout])
 
         # Output layer
-        self.out = nn.Linear(prev_layer_nodes, output_nodes)
-        self.layers.append(self.out)
+        out = nn.Linear(prev_layer_nodes, output_nodes)
+        self.layers.append(out)
+        # out_softmaxed = nn.Softmax(dim=1) # Should not have a softmax. Loss must be computed on logits
+        # self.layers.append(out_softmaxed)
+
         # print(self.layers)
 
     def forward(self, x):

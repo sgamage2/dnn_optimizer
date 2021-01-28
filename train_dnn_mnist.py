@@ -6,6 +6,7 @@ from models.cnn_mnist import CNN_Network
 from models.ann_fixed import FixedFullyConnectedNetwork
 from models.ann import FullyConnectedNetwork
 from models.model_utility import train_network, test_network, visualize_network
+from pprint import pformat
 
 
 params = {}
@@ -30,7 +31,7 @@ def main():
     # ------------------------
     # Init
     print('Experiment parameters')
-    print(params)
+    print(pformat(params))
 
     assert params['device'] in ['cpu', 'cuda']
     if params['device'] == 'cuda':
@@ -54,6 +55,8 @@ def main():
 
     history = train_network(cnn_net, trainset, params, device)
 
+    # ------------------------
+    # Visualization
     evaluation.plot_training_history(history)
     evaluation.plot_entropy_history(history)
 

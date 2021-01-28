@@ -35,10 +35,11 @@ def train_network(network, trainset, params, device):
 
     train_loss_hist = []
 
-    damith_ents_hist = {0: [], 1: [], 2: []}
+    # damith_ents_hist = {0: [], 1: [], 2: []}
 
     print('Training neural network')
     for epoch in range(epochs):  # loop over the dataset multiple epochs
+        epoch_start_time = time.time()
         shuffled_indices = torch.randperm(num_samples)
         train_loss_epoch = 0.0
         for j in range(0, num_samples, batch_size):
@@ -69,21 +70,25 @@ def train_network(network, trainset, params, device):
         train_loss_hist.append(train_loss_epoch)
 
         # ------------------------------------------------------
-        # Compute per layer entropy from Damith's function for comparison
-        ents_damith = entropy.get_entropies_damith(network, epoch)
-        # print(f'Damith entropy: {ents_damith}')
-        for layer, ent in enumerate(ents_damith):
-            damith_ents_hist[layer].append(ent)
+        # # Compute per layer entropy from Damith's function for comparison
+        # ents_damith = entropy.get_entropies_damith(network, epoch)
+        # # print(f'Damith entropy: {ents_damith}')
+        # for layer, ent in enumerate(ents_damith):
+        #     damith_ents_hist[layer].append(ent)
         # ------------------------------------------------------
 
-        print('[epoch: {}] train_loss: {:.3f}'.format(epoch + 1, train_loss_epoch))
+        epoch_info = f'[epoch: {epoch + 1}/{epochs}]\t' \
+                     f'time: {time.time() - epoch_start_time:.1f}\t' \
+                     f'train_loss: {train_loss_epoch:.4f}'
+
+        print(epoch_info)
 
     history = {'train_loss': train_loss_hist}
 
     ent_hist = optimizer.get_entropy_history()
     history['per_layer_entropy'] = ent_hist
 
-    history['damith_entropies'] = damith_ents_hist
+    # history['damith_entropies'] = damith_ents_hist
 
     time_to_train = time.time() - t0
     print('Finished Training. Time taken: {:.2f} sec, {:.2f} min'.format(time_to_train, time_to_train / 60))

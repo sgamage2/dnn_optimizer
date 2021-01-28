@@ -40,14 +40,17 @@ def plot_entropy_history(history):
     for layer, entropy_hist in layer_entropies.items():
         epoch = list(range(len(entropy_hist)))
         plt.plot(entropy_hist, label='Layer {}'.format(layer))
-        plt.scatter(epoch, entropy_hist)
+        # plt.scatter(epoch, entropy_hist)
 
-    damith_layer_entropies = history['damith_entropies']
-
-    for layer, damith_entropy_hist in damith_layer_entropies.items():
-        epoch = list(range(len(damith_entropy_hist)))
-        plt.plot(damith_entropy_hist, label='Damith Layer {}'.format(layer))
-        plt.scatter(epoch, damith_entropy_hist, marker='x')
+    # ------------------------------------------------
+    # # Plot entropy history from Damith's function for comparison
+    # damith_layer_entropies = history['damith_entropies']
+    #
+    # for layer, damith_entropy_hist in damith_layer_entropies.items():
+    #     epoch = list(range(len(damith_entropy_hist)))
+    #     plt.plot(damith_entropy_hist, label='Damith Layer {}'.format(layer))
+    #     plt.scatter(epoch, damith_entropy_hist, marker='x')
+    # ------------------------------------------------
 
     plt.title("Entropy history")
     plt.xlabel("Epoch")
