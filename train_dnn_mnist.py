@@ -11,22 +11,27 @@ from models.model_utility import train_network, test_network, visualize_network
 params = {}
 params['data_dir'] = 'data'
 params['device'] = 'cpu'    # cpu, cuda
-params['epochs'] = 2
-params['batch_size'] = 256
-params['optimizer'] = 'sgd'     # sgd, sgd_momentum, adagrad, adam, entropy, entropy_per_neuron ...
-params['learning_rate'] = 0.01
+params['epochs'] = 50
+params['batch_size'] = 20 # 256
+params['optimizer'] = 'entropy_per_layer'     # sgd, sgd_momentum, adagrad, adam, entropy_per_layer, entropy_per_neuron ...
+params['learning_rate'] = 0.1
 
 params['ann_input_nodes'] = 28 * 28
 params['output_nodes'] = 10
 # params['ann_layer_units'] = [64, 32, 16]
-params['ann_layer_units'] = [128, 64]
+# params['ann_layer_units'] = [128, 64]
+params['ann_layer_units'] = [50, 50]
 params['ann_layer_activations'] = ['relu', 'relu', 'relu']
-params['ann_layer_dropout_rates'] = [0.2, 0.2, 0.2]
+# params['ann_layer_dropout_rates'] = [0.2, 0.2, 0.2]
+params['ann_layer_dropout_rates'] = [0.0, 0.0, 0.0]
 
 
 def main():
     # ------------------------
     # Init
+    print('Experiment parameters')
+    print(params)
+
     assert params['device'] in ['cpu', 'cuda']
     if params['device'] == 'cuda':
         print('Running on GPU (CUDA)')
@@ -50,6 +55,7 @@ def main():
     history = train_network(cnn_net, trainset, params, device)
 
     evaluation.plot_training_history(history)
+    evaluation.plot_entropy_history(history)
 
     # ------------------------
     # Test model

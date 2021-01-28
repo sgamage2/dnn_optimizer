@@ -6,6 +6,8 @@ import torchviz
 import optimizers.simple_sgd
 import optimizers.per_weight_lr
 import optimizers.per_neuron_lr
+import optimizers.entropy_per_layer
+from utility import entropy
 
 
 def train_network(network, trainset, params, device):
@@ -33,6 +35,8 @@ def train_network(network, trainset, params, device):
 
     train_loss_hist = []
 
+    damith_ents_hist = {0: [], 1: [], 2: []}
+
     print('Training neural network')
     for epoch in range(epochs):  # loop over the dataset multiple epochs
         shuffled_indices = torch.randperm(num_samples)
@@ -59,15 +63,32 @@ def train_network(network, trainset, params, device):
             #           (epoch + 1, j + 1, running_loss / 2000))
             #     running_loss = 0.0
 
+        optimizer.on_epoch_end()
+
         train_loss_epoch = float(train_loss_epoch / num_batches)
         train_loss_hist.append(train_loss_epoch)
+
+        # ------------------------------------------------------
+        # Compute per layer entropy from Damith's function for comparison
+        ents_damith = entropy.get_entropies_damith(network, epoch)
+        # print(f'Damith entropy: {ents_damith}')
+        for layer, ent in enumerate(ents_damith):
+            damith_ents_hist[layer].append(ent)
+        # ------------------------------------------------------
 
         print('[epoch: {}] train_loss: {:.3f}'.format(epoch + 1, train_loss_epoch))
 
     history = {'train_loss': train_loss_hist}
 
+    ent_hist = optimizer.get_entropy_history()
+    history['per_layer_entropy'] = ent_hist
+
+    history['damith_entropies'] = damith_ents_hist
+
     time_to_train = time.time() - t0
     print('Finished Training. Time taken: {:.2f} sec, {:.2f} min'.format(time_to_train, time_to_train / 60))
+
+    optimizer.print_stuff()
 
     return history
 
@@ -93,7 +114,8 @@ def test_network(network, testset, device):
 
 
 def visualize_network(network, dataset):
-    print(network)
+    print(network.layers)
+    print("Number of model parameters = ", sum(p.numel() for p in network.parameters()))
     X_all = dataset.tensors[0]
     out = network(X_all[0])
     torchviz.make_dot(out).render("output/network_viz", format="png")
@@ -116,7 +138,10 @@ def create_optimizer(optimizer_name, network, learning_rate):
             group['lr'] = lr
         optimizer = optimizers.simple_sgd.SimpleSGD(param_groups, lr=learning_rate)
     elif optimizer_name == 'entropy_per_layer':
-        assert False
+        param_groups = network.group_params_by_layer()
+        for group in param_groups:
+            group['lr'] = learning_rate
+        optimizer = optimizers.entropy_per_layer.EntropyPerLayer(param_groups, lr=learning_rate)
     elif optimizer_name == 'entropy_per_neuron':
         assert False
     else:

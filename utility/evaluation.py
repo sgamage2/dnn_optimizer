@@ -3,7 +3,7 @@ import matplotlib.pyplot as plt
 
 
 def plot_training_history(history):
-    print('Plotting history')
+    print('Plotting training history')
     if history is None or 'train_loss' not in history:
         assert False
 
@@ -26,3 +26,30 @@ def plot_training_history(history):
     # history_df = pd.DataFrame(history_dict)
     # common.add_dataframe_to_save(history_df, 'training_history')
 
+
+def plot_entropy_history(history):
+    print('Plotting entropy history')
+    if history is None or 'per_layer_entropy' not in history:
+        return False
+
+    fig = plt.figure()
+    common.add_figure_to_save(fig, 'entropy_history')
+
+    layer_entropies = history['per_layer_entropy']
+
+    for layer, entropy_hist in layer_entropies.items():
+        epoch = list(range(len(entropy_hist)))
+        plt.plot(entropy_hist, label='Layer {}'.format(layer))
+        plt.scatter(epoch, entropy_hist)
+
+    damith_layer_entropies = history['damith_entropies']
+
+    for layer, damith_entropy_hist in damith_layer_entropies.items():
+        epoch = list(range(len(damith_entropy_hist)))
+        plt.plot(damith_entropy_hist, label='Damith Layer {}'.format(layer))
+        plt.scatter(epoch, damith_entropy_hist, marker='x')
+
+    plt.title("Entropy history")
+    plt.xlabel("Epoch")
+    plt.ylabel("Entropy (bits)")
+    plt.legend(loc='upper right')
