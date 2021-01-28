@@ -1,5 +1,7 @@
 import torch
-from utility import data_prep
+# import matplotlib.pyplot as plt
+
+from utility import data_prep, evaluation, common
 from models.cnn_mnist import CNN_Network
 from models.ann_fixed import FixedFullyConnectedNetwork
 from models.ann import FullyConnectedNetwork
@@ -8,10 +10,11 @@ from models.model_utility import train_network, test_network, visualize_network
 
 params = {}
 params['data_dir'] = 'data'
-params['device'] = 'cuda'    # cpu, cuda
-params['epochs'] = 10
+params['device'] = 'cpu'    # cpu, cuda
+params['epochs'] = 2
 params['batch_size'] = 256
-params['optimizer'] = 'sgd' # sgd, adam, entropy ...
+params['optimizer'] = 'sgd'     # sgd, sgd_momentum, adagrad, adam, entropy, entropy_per_neuron ...
+params['learning_rate'] = 0.01
 
 params['ann_input_nodes'] = 28 * 28
 params['output_nodes'] = 10
@@ -43,11 +46,17 @@ def main():
     # cnn_net = FixedFullyConnectedNetwork(input_size=28*28, output_size=10)
     cnn_net = FullyConnectedNetwork(params)
     visualize_network(cnn_net, trainset)
-    train_network(cnn_net, trainset, params['epochs'], params['batch_size'], device)
+
+    history = train_network(cnn_net, trainset, params, device)
+
+    evaluation.plot_training_history(history)
 
     # ------------------------
     # Test model
     test_network(cnn_net, testset, device)
+
+    # plt.show()
+    common.save_all_figures('output')
 
 
 if __name__ == '__main__':
