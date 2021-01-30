@@ -5,7 +5,7 @@ output_dir: output
 
 # Training parameters
 device: cpu    # cpu, cuda
-epochs: 2
+epochs: 10
 batch_size: 20 # 256
 optimizer: entropy_per_neuron     # sgd, sgd_momentum, adagrad, adam, entropy_per_layer, entropy_per_neuron ...
 learning_rate: 0.1

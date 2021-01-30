@@ -1,3 +1,6 @@
+# Run this script with the following command
+# python train_dnn_mnist.py sunanda_params.yaml
+
 import torch
 # import matplotlib.pyplot as plt
 from contextlib import redirect_stdout
@@ -15,7 +18,7 @@ def run_experiment(params_filename):
     # Init
     torch.manual_seed(123)
     params = common.get_params_from_file(params_filename)
-    common.init_logging(params['output_dir'] + '/experiment_log.txt')
+    common.init_logging(params['output_dir'])
 
     print('Experiment parameters')
     print(pformat(params))

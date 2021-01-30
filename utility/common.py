@@ -12,11 +12,11 @@ class Logger(object):
 
     def write(self, message):
         self.terminal.write(message)
+        self.terminal.flush()
         self.log.write(message)
+        self.log.flush()
 
     def flush(self):    # needed for python 3 compatibility.
-        # self.terminal.flush()
-        # self.log.flush()
         pass
 
 
@@ -35,7 +35,11 @@ def get_params_filename_from_cmd_args():
     return filename
 
 
-def init_logging(log_filename):
+def init_logging(output_dir):
+    if not os.path.exists(output_dir):
+        os.makedirs(output_dir)
+
+    log_filename = output_dir + '/experiment_log.txt'
     sys.stdout = Logger(log_filename, sys.stdout)
     sys.stderr = Logger(log_filename, sys.stderr)
 
