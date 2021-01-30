@@ -1,0 +1,22 @@
+# Misc params
+data_dir: data
+output_dir: output
+
+
+# Training parameters
+device: cpu    # cpu, cuda
+epochs: 2
+batch_size: 20 # 256
+optimizer: entropy_per_neuron     # sgd, sgd_momentum, adagrad, adam, entropy_per_layer, entropy_per_neuron ...
+learning_rate: 0.1
+ent_beta: 1  # Param for entropy optimizers (for learning rule update)
+
+# Network architecture
+ann_input_nodes: 784
+output_nodes: 10
+#ann_layer_units: [64, 32, 16]
+#ann_layer_units: [128, 64]
+ann_layer_units: [50, 50]
+ann_layer_activations: ['relu', 'relu', 'relu']
+#ann_layer_dropout_rates: [0.2, 0.2, 0.2]
+ann_layer_dropout_rates: [0.0, 0.0, 0.0]

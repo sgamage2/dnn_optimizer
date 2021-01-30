@@ -7,31 +7,33 @@ from models.ann_fixed import FixedFullyConnectedNetwork
 from models.ann import FullyConnectedNetwork
 from models.model_utility import train_network, test_network, visualize_network
 from pprint import pformat
+import sys, os
+import yaml
 
 
-params = {}
-params['data_dir'] = 'data'
-params['device'] = 'cpu'    # cpu, cuda
-params['epochs'] = 10
-params['batch_size'] = 20 # 256
-params['optimizer'] = 'entropy_per_neuron'     # sgd, sgd_momentum, adagrad, adam, entropy_per_layer, entropy_per_neuron ...
-params['learning_rate'] = 0.1
-params['ent_beta'] = 1  # Param for entropy_per_layer optimizer (for learning rule update)
+def get_params_filename_from_cmd_args():
+    num_args = len(sys.argv)
+    if num_args != 2:
+        print('Usage:')
+        print('python train_dnn_mnist my_config.yaml')
+        sys.exit(1)
 
-params['ann_input_nodes'] = 28 * 28
-params['output_nodes'] = 10
-# params['ann_layer_units'] = [64, 32, 16]
-# params['ann_layer_units'] = [128, 64]
-params['ann_layer_units'] = [50, 50]
-params['ann_layer_activations'] = ['relu', 'relu', 'relu']
-# params['ann_layer_dropout_rates'] = [0.2, 0.2, 0.2]
-params['ann_layer_dropout_rates'] = [0.0, 0.0, 0.0]
+    filename = sys.argv[1]
+    if not os.path.isfile(filename):
+        print(f'Config File {filename} does not exist')
+        sys.exit()
+
+    return filename
 
 
-def main():
+def run_experiment(params_filename):
     # ------------------------
     # Init
     torch.manual_seed(123)
+
+    # Load params
+    file = open(params_filename, "r")
+    params = yaml.load(file, Loader=yaml.FullLoader)
 
     print('Experiment parameters')
     print(pformat(params))
@@ -69,7 +71,12 @@ def main():
     test_network(cnn_net, testset, device)
 
     # plt.show()
-    common.save_all_figures('output')
+    common.save_all_figures(params['output_dir'])
+
+
+def main():
+    params_filename = get_params_filename_from_cmd_args()
+    run_experiment(params_filename)
 
 
 if __name__ == '__main__':

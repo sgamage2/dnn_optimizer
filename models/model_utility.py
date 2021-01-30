@@ -157,7 +157,6 @@ def test_network(network, testset, device):
     print('Accuracy of the network on the 10000 test images: %d %%' % (100 * correct_preds / num_samples))
 
 
-
 def visualize_network(network, dataset):
     print(network.layers)
     print("Number of model parameters = ", sum(p.numel() for p in network.parameters()))
