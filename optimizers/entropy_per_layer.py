@@ -8,6 +8,8 @@ import torch
 from torch.optim import Optimizer
 from utility import entropy
 
+# ToDo: optimization - do all computations (entropy, entropy diff, lr update coeff etc) with torch
+# This keeps doing the computations on the same given device (eg: GPU)
 
 class EntropyPerLayer(Optimizer):
     def __init__(self, params, lr, beta):
@@ -34,13 +36,9 @@ class EntropyPerLayer(Optimizer):
                 d_p = p.grad
                 p.add_(d_p, alpha=-lr)      # SGD update rule: p = p - lr * d_p
 
-
-        loss = None
-        return loss
-
     def on_epoch_start(self):
         """Performs things such as updating learning rate based on entropy.
-        This method should be called in the training loop at the end of every epoch
+        This method should be called in the training loop at the start of every epoch
         """
         # The params are in Parameter objects. Each layer has 2 Parameter objects (biases and weights)
         for group in self.param_groups:  # Each group is a layer
@@ -60,12 +58,13 @@ class EntropyPerLayer(Optimizer):
             weights = np.concatenate(params_list, axis=1)
             ent = entropy.get_entropy(weights)
 
-            # print(ent)
-            # print(lr)
+            # print(f'---- lrs: {np.round(ent_per_neuron[0:5], 4)}')
+            # print(f'---- lrs: {np.round(lr_per_neuron_arr[0:5], 4)}')
             entropy_hist.append(ent)
             lr_hist.append(group['lr'])
 
-        self._update_learning_rates()
+        if len(entropy_hist) >= 2:  # To get entropy diff, we need a history of at least 2
+            self._update_learning_rates()
 
     def get_history(self):
         entropy_history = {}
@@ -82,9 +81,8 @@ class EntropyPerLayer(Optimizer):
         # Iterate over layers to compute average entropy
         for group in self.param_groups:  # Each group is a layer
             entropy_hist = group['entropy_hist']
-            if len(entropy_hist) >= 2:
-                en_diff = abs(entropy_hist[-1] - entropy_hist[-2])  # Diff between last 2 values
-                en_diff_sum += en_diff
+            en_diff = abs(entropy_hist[-1] - entropy_hist[-2])  # Diff between last 2 values
+            en_diff_sum += en_diff
 
         avg_en_diff = en_diff_sum / num_layers
 
@@ -92,10 +90,7 @@ class EntropyPerLayer(Optimizer):
         for group in self.param_groups:  # Each group is a layer
             entropy_hist = group['entropy_hist']
             beta = group['beta']
-
-            if len(entropy_hist) >= 2:
-                en_diff = abs(entropy_hist[-1] - entropy_hist[-2])
-                en_diff = (en_diff + avg_en_diff) / avg_en_diff
-                coeff = (en_diff * beta) / (1 + en_diff * beta)
-                group['lr'] *= coeff
-
+            en_diff = abs(entropy_hist[-1] - entropy_hist[-2])
+            en_diff = (en_diff + avg_en_diff) / avg_en_diff
+            coeff = (en_diff * beta) / (1 + en_diff * beta)
+            group['lr'] *= coeff    # Learning rate update

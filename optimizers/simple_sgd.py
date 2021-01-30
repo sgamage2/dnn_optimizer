@@ -28,6 +28,3 @@ class SimpleSGD(Optimizer):
                     continue
                 d_p = p.grad
                 p.add_(d_p, alpha=-lr)      # SGD update rule: p = p - lr * d_p
-
-        loss = None
-        return loss

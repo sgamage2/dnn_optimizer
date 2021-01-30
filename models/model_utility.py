@@ -5,10 +5,10 @@ import torch
 import torchviz
 import optimizers.simple_sgd
 import optimizers.per_weight_lr
-import optimizers.per_neuron_lr
+import optimizers.entropy_per_neuron
 import optimizers.entropy_per_layer
 from utility import entropy
-
+from pprint import pprint
 
 def train_network(network, trainset, params, device):
     epochs = params['epochs']
@@ -39,7 +39,7 @@ def train_network(network, trainset, params, device):
 
     print('Training neural network')
     for epoch in range(epochs):  # loop over the dataset multiple epochs
-        optimizer.on_epoch_start()
+        optimizer.on_epoch_start()  # Optimizer may do things like compute entropies and update learning rates
 
         epoch_start_time = time.time()
         shuffled_indices = torch.randperm(num_samples)
@@ -87,8 +87,10 @@ def train_network(network, trainset, params, device):
     history = {'train_loss': train_loss_hist}
 
     ent_hist, lr_hist = optimizer.get_history()
-    history['per_layer_entropy'] = ent_hist
-    history['per_layer_learning_rate'] = lr_hist
+    history['entropy_hist'] = ent_hist
+    history['learning_rate_hist'] = lr_hist
+
+    # pprint(lr_hist)
 
     # history['damith_entropies'] = damith_ents_hist
 
@@ -150,7 +152,11 @@ def create_optimizer(optimizer_name, network, params):
         beta = params['ent_beta']
         optimizer = optimizers.entropy_per_layer.EntropyPerLayer(param_groups, lr=learning_rate, beta=beta)
     elif optimizer_name == 'entropy_per_neuron':
-        assert False
+        param_groups = network.group_params_by_layer()
+        for group in param_groups:
+            group['lr'] = learning_rate
+        beta = params['ent_beta']
+        optimizer = optimizers.entropy_per_neuron.EntropyPerNeuron(param_groups, lr=learning_rate, beta=beta)
     else:
         assert False    # Unknown optimizer_name
 

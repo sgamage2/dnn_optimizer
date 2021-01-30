@@ -1,5 +1,6 @@
 from utility import common
 import matplotlib.pyplot as plt
+import numpy as np
 
 
 def plot_training_history(history):
@@ -29,17 +30,24 @@ def plot_training_history(history):
 
 def plot_entropy_history(history):
     print('Plotting entropy history')
-    if history is None or 'per_layer_entropy' not in history:
+    if history is None or 'entropy_hist' not in history:
         return False
 
+    layer_entropies = history['entropy_hist']
+
+    if type(layer_entropies[0][0]) == np.ndarray:
+        plot_entropies_per_neuron(layer_entropies)
+    else:
+        plot_entropies_per_layer(layer_entropies)
+
+
+def plot_entropies_per_layer(layer_entropies):
     fig = plt.figure()
     common.add_figure_to_save(fig, 'entropy_history')
 
-    layer_entropies = history['per_layer_entropy']
-
-    for layer, entropy_hist in layer_entropies.items():
-        epoch = list(range(len(entropy_hist)))
-        plt.plot(entropy_hist, label='Layer {}'.format(layer))
+    for layer, e_hist in layer_entropies.items():
+        epoch = list(range(len(e_hist)))
+        plt.plot(e_hist, label='Layer {}'.format(layer))
         # plt.scatter(epoch, entropy_hist)
 
     # ------------------------------------------------
@@ -58,15 +66,39 @@ def plot_entropy_history(history):
     plt.legend(loc='upper right')
 
 
+def plot_entropies_per_neuron(layer_entropies):
+    for layer, e_hist in layer_entropies.items():
+        # e_hist is a list of np arrays. Each np array has the entropies of the layer's neurons. Has shape (nodes,)
+        neurons = e_hist[0].shape[0]
+        fig = plt.figure()
+        common.add_figure_to_save(fig, f'layer_{layer}_entropy_history')
+
+        for n in range(neurons):
+            neuron_ent_hist = [layer_ent[n] for layer_ent in e_hist]
+            plt.plot(neuron_ent_hist)
+
+        plt.title(f"Layer {layer} entropy history")
+        plt.xlabel("Epoch")
+        plt.ylabel("Entropy (bits)")
+        # plt.legend(loc='upper right')
+
+
 def plot_lr_history(history):
     print('Plotting learning rate history')
-    if history is None or 'per_layer_learning_rate' not in history:
+    if history is None or 'learning_rate_hist' not in history:
         return False
 
+    layer_lrs = history['learning_rate_hist']
+
+    if type(layer_lrs[0][0]) == np.ndarray:
+        plot_lr_per_neuron(layer_lrs)
+    else:
+        plot_lr_per_layer(layer_lrs)
+
+
+def plot_lr_per_layer(layer_lrs):
     fig = plt.figure()
     common.add_figure_to_save(fig, 'lr_history')
-
-    layer_lrs = history['per_layer_learning_rate']
 
     for layer, lr_hist in layer_lrs.items():
         plt.plot(lr_hist, label='Layer {}'.format(layer))
@@ -75,3 +107,26 @@ def plot_lr_history(history):
     plt.xlabel("Epoch")
     plt.ylabel("Learning rate")
     plt.legend(loc='upper right')
+
+
+def plot_lr_per_neuron(layer_lrs):
+    for layer, lr_hist in layer_lrs.items():
+        # lr_hist is a list of np arrays. Each np array has the entropies of the layer's neurons. Has shape (nodes,)
+        neurons = lr_hist[0].shape[0]
+        fig = plt.figure()
+        common.add_figure_to_save(fig, f'layer_{layer}_lr_history')
+
+        # layer_lr_hist = np.array(lr_hist)
+        # print('====== layer_lr_hist ===== ')
+        # print(np.round(layer_lr_hist, 4))
+        # print('========================== ')
+
+        for n in range(neurons):
+            neuron_lr_hist = [layer_lr[n] for layer_lr in lr_hist]
+            # print(neuron_lr_hist)
+            plt.plot(neuron_lr_hist)
+
+        plt.title(f"Layer {layer} learning rate history")
+        plt.xlabel("Epoch")
+        plt.ylabel("Learning rate")
+        # plt.legend(loc='upper right')

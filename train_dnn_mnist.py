@@ -14,7 +14,7 @@ params['data_dir'] = 'data'
 params['device'] = 'cpu'    # cpu, cuda
 params['epochs'] = 10
 params['batch_size'] = 20 # 256
-params['optimizer'] = 'entropy_per_layer'     # sgd, sgd_momentum, adagrad, adam, entropy_per_layer, entropy_per_neuron ...
+params['optimizer'] = 'entropy_per_neuron'     # sgd, sgd_momentum, adagrad, adam, entropy_per_layer, entropy_per_neuron ...
 params['learning_rate'] = 0.1
 params['ent_beta'] = 1  # Param for entropy_per_layer optimizer (for learning rule update)
 
