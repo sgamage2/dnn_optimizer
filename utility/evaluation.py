@@ -8,24 +8,27 @@ def plot_training_history(history):
     if history is None or 'train_loss' not in history:
         assert False
 
-    fig = plt.figure()
-    common.add_figure_to_save(fig, 'training_history')
-
     train_loss = history['train_loss']
+    test_loss = history['test_loss']
 
-    plt.plot(train_loss, label='training_loss')
+    train_error = history['train_error']
+    test_error = history['test_error']
 
-    if 'val_loss' in history:
-        val_loss = history['val_loss']
-        plt.plot(val_loss, label='validation_loss')
+    plot_2_histories(train_loss, test_loss, 'train_loss', 'test_loss', 'Loss history', 'loss_history', 'Loss')
+    plot_2_histories(train_error, test_error, 'train_error', 'test_error', 'Error history', 'error_history', 'Error')
 
-    plt.title("Training history")
+
+def plot_2_histories(y1, y2, legend1, legend2, title, filename, ylabel):
+    fig = plt.figure()
+    common.add_figure_to_save(fig, filename)
+
+    plt.plot(y1, label=legend1)
+    plt.plot(y2, label=legend2)
+
+    plt.title(title)
     plt.xlabel("Epoch")
-    plt.ylabel("Loss")
+    plt.ylabel(ylabel)
     plt.legend(loc='upper right')
-
-    # history_df = pd.DataFrame(history_dict)
-    # common.add_dataframe_to_save(history_df, 'training_history')
 
 
 def plot_entropy_history(history):

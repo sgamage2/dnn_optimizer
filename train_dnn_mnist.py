@@ -56,7 +56,7 @@ def main():
     cnn_net = FullyConnectedNetwork(params)
     visualize_network(cnn_net, trainset)
 
-    history = train_network(cnn_net, trainset, params, device)
+    history = train_network(cnn_net, trainset, testset, params, device)
 
     # ------------------------
     # Visualization
