@@ -1,39 +1,21 @@
 import torch
 # import matplotlib.pyplot as plt
+from contextlib import redirect_stdout
+from pprint import pformat
 
 from utility import data_prep, evaluation, common
 from models.cnn_mnist import CNN_Network
 from models.ann_fixed import FixedFullyConnectedNetwork
 from models.ann import FullyConnectedNetwork
 from models.model_utility import train_network, test_network, visualize_network
-from pprint import pformat
-import sys, os
-import yaml
-
-
-def get_params_filename_from_cmd_args():
-    num_args = len(sys.argv)
-    if num_args != 2:
-        print('Usage:')
-        print('python train_dnn_mnist my_config.yaml')
-        sys.exit(1)
-
-    filename = sys.argv[1]
-    if not os.path.isfile(filename):
-        print(f'Config File {filename} does not exist')
-        sys.exit()
-
-    return filename
 
 
 def run_experiment(params_filename):
     # ------------------------
     # Init
     torch.manual_seed(123)
-
-    # Load params
-    file = open(params_filename, "r")
-    params = yaml.load(file, Loader=yaml.FullLoader)
+    params = common.get_params_from_file(params_filename)
+    common.init_logging(params['output_dir'] + '/experiment_log.txt')
 
     print('Experiment parameters')
     print(pformat(params))
@@ -75,7 +57,7 @@ def run_experiment(params_filename):
 
 
 def main():
-    params_filename = get_params_filename_from_cmd_args()
+    params_filename = common.get_params_filename_from_cmd_args()
     run_experiment(params_filename)
 
 
