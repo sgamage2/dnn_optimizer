@@ -84,7 +84,8 @@ class EntropyPerLayer(Optimizer):
             en_diff = abs(entropy_hist[-1] - entropy_hist[-2])  # Diff between last 2 values
             en_diff_sum += en_diff
 
-        avg_en_diff = en_diff_sum / num_layers
+        epsilon = 1e-5
+        avg_en_diff = (en_diff_sum + epsilon) / num_layers
 
         # Iterate over layers to update learning rates
         for group in self.param_groups:  # Each group is a layer

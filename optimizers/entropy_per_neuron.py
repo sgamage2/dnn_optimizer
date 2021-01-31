@@ -117,7 +117,8 @@ class EntropyPerNeuron(Optimizer):
             en_diff_sum += np.sum(en_diff)
             num_nodes += en_diff.size
 
-        avg_en_diff = en_diff_sum / num_nodes   # scalar
+        epsilon = 1e-5
+        avg_en_diff = (en_diff_sum + epsilon) / num_nodes   # scalar
 
         # Iterate parameters in each layer to update learning rates
         for group in self.param_groups:  # Each group is a layer
