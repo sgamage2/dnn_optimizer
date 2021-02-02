@@ -2,6 +2,7 @@
 # python train_dnn_mnist.py sunanda_params.yaml
 
 import torch
+import numpy as np
 # import matplotlib.pyplot as plt
 from contextlib import redirect_stdout
 from pprint import pformat
@@ -16,12 +17,17 @@ from models.model_utility import train_network, test_network, visualize_network
 def run_experiment(params_filename):
     # ------------------------
     # Init
-    torch.manual_seed(123)
     params = common.get_params_from_file(params_filename)
     common.init_logging(params['output_dir'])
 
     print('Experiment parameters')
     print(pformat(params))
+
+    # Set random seed
+    seed = params['random_seed']
+    torch.manual_seed(123)
+    np.random.seed(seed)
+    # torch.set_deterministic(True)   # Avoid non-deterministic algorithms (currently in beta)
 
     assert params['device'] in ['cpu', 'cuda']
     if params['device'] == 'cuda':
