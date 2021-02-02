@@ -74,7 +74,7 @@ def train_network(network, trainset, testset, params, device):
     history['test_loss'] = test_loss_hist
     history['test_error'] = test_error_hist
 
-    if "get_history" in dir(optimizer):     # get_history() method is only available in some of the custom optimizers
+    if "get_history" in dir(optimizer):     # this method is only available in some of the custom optimizers
         ent_hist, lr_hist = optimizer.get_history()
         history['entropy_hist'] = ent_hist
         history['learning_rate_hist'] = lr_hist
@@ -91,7 +91,8 @@ def train_network(network, trainset, testset, params, device):
 def train_one_epoch(X_train, y_train, network, optimizer, loss_function, batch_size):
     num_samples = X_train.shape[0]
 
-    optimizer.on_epoch_start()  # Optimizer may do things like compute entropies and update learning rates
+    if "on_epoch_start" in dir(optimizer):     # this method is only available in some of the custom optimizers
+        optimizer.on_epoch_start()  # Optimizer may do things like compute entropies and update learning rates
 
     shuffled_indices = torch.randperm(num_samples)
     train_loss_epoch = 0.0
@@ -169,8 +170,8 @@ def create_optimizer(optimizer_name, network, params):
     learning_rate = params['learning_rate']
     if optimizer_name == 'sgd':
         optimizer = optim.SGD(network.parameters(), lr=learning_rate)  # SGD without momentum
-    elif optimizer_name == 'momentum':
-        optimizer = optim.SGD(network.parameters(), lr=learning_rate, momentum=0.9)
+    elif optimizer_name == 'sgd_momentum':
+        optimizer = optim.SGD(network.parameters(), lr=learning_rate, momentum=params['momentum'])
     elif optimizer_name == 'adam':
         optimizer = optim.Adam(network.parameters())
     elif optimizer_name == 'adagrad':

@@ -3,14 +3,19 @@ data_dir: data
 output_dir: output
 
 
-# Training parameters
+# Basic training parameters
 device: cpu    # cpu, cuda
+random_seed: 123  # Seed for torch.manual_seed() and np.random.seed()
 epochs: 5
 batch_size: 32 # 256
-optimizer: entropy_per_neuron     # sgd, sgd_momentum, adagrad, adam, entropy_per_layer, entropy_per_neuron ...
+
+# Optimizer params
+# Supported optimizers: sgd, sgd_momentum, adagrad, adam, entropy_per_layer, entropy_per_neuron
+optimizer: entropy_per_neuron
 learning_rate: 0.1
 ent_beta: 1  # Param for entropy optimizers (for learning rule update)
-random_seed: 123  # Seed for torch.manual_seed() and np.random.seed()
+momentum: 0.1   # Used in sgd_momentum
+# Note: Define other optimizers, optimizer params as needed and add them to code in model_utility.create_optimizer()
 
 # Network architecture
 ann_input_nodes: 784
