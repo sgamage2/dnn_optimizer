@@ -35,9 +35,15 @@ def get_params_filename_from_cmd_args():
     return filename
 
 
-def init_logging(output_dir):
+def init_logging(params):
+    output_dir = params['output_dir'] + '/' + 'exp_' + time.strftime("%b%d-%H_%M_%S")
+    params['output_dir'] = output_dir
+
     if not os.path.exists(output_dir):
         os.makedirs(output_dir)
+
+    clear_all_figures()
+    clear_all_dataframes()
 
     log_filename = output_dir + '/experiment_log.txt'
     sys.stdout = Logger(log_filename, sys.stdout)

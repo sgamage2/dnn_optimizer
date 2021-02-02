@@ -18,7 +18,7 @@ def run_experiment(params_filename):
     # ------------------------
     # Init
     params = common.get_params_from_file(params_filename)
-    common.init_logging(params['output_dir'])
+    common.init_logging(params)
 
     print('Experiment parameters')
     print(pformat(params))
