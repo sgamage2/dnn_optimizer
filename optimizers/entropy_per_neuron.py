@@ -24,10 +24,12 @@ class EntropyPerNeuron(Optimizer):
             group['entropy_hist'] = []    # Each element is an np array with entropies of neurons. shape = (layer_nodes,)
             group['lr_hist'] = []    # Each element is an np array with learning rates of neurons. shape = (layer_nodes,)
             group['beta'] = beta
+            # group['original_lr'] = lr
             for p in group['params']:
                 state = self.state[p]   # A dict that keeps state of each Parameter obj (biases and weights of layers)
                 state['step'] = 0
                 state['lr'] = torch.full_like(p, lr)    # A Tensor of same shape as Parameter filled with initial lr
+                state['original_lr'] = torch.full_like(p, lr)    # A Tensor of same shape as Parameter filled with initial lr
 
                 if self.device is None:
                     self.device = p.device
@@ -137,17 +139,19 @@ class EntropyPerNeuron(Optimizer):
 
             for p in group['params']:  # p = params. A Parameter object with biases or weights of a layer
                 state = self.state[p]
-                per_weight_lr = state['lr']
-                assert p.shape == per_weight_lr.shape
+                # per_weight_lr = state['lr']
+                assert p.shape == state['lr'].shape
 
                 # print(f'--- p.shape: {p.shape}')
 
                 # For the connection between two layers L1 --> L2
                 if p.ndim == 1:  # This Parameter is a vector of biases (shape = L2_nodes)
+                    state['lr'] = state['original_lr'] * coeffs
                     # print(f'---- before ---- {per_weight_lr[0:8]}')
-                    per_weight_lr.mul_(coeffs)
+                    # per_weight_lr.mul_(coeffs)
                     # print(f'---- after ---- {per_weight_lr[0:8]}')
                     # print(f'---- after ---- {state["lr"][0:8]}')
                 elif p.ndim == 2:  # This Parameter is a Tensor of weights (shape = L2_nodes, L1_nodes)
-                    per_weight_lr.mul_(coeffs_reshaped)
+                    state['lr'] = state['original_lr'] * coeffs_reshaped
+                    # per_weight_lr.mul_(coeffs_reshaped)
 

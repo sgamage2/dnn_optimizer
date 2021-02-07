@@ -21,6 +21,7 @@ class EntropyPerLayer(Optimizer):
             group['entropy_hist'] = []
             group['lr_hist'] = []   # Keep a history of learning rates (for debugging)
             group['beta'] = beta
+            group['original_lr'] = lr
 
     @torch.no_grad()
     def step(self, closure=None):
@@ -94,4 +95,4 @@ class EntropyPerLayer(Optimizer):
             en_diff = abs(entropy_hist[-1] - entropy_hist[-2])
             en_diff = (en_diff + avg_en_diff) / avg_en_diff
             coeff = (en_diff * beta) / (1 + en_diff * beta)
-            group['lr'] *= coeff    # Learning rate update
+            group['lr'] = group['original_lr'] * coeff    # Learning rate update
