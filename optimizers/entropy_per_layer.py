@@ -12,7 +12,7 @@ from utility import entropy
 # This keeps doing the computations on the same given device (eg: GPU)
 
 class EntropyPerLayer(Optimizer):
-    def __init__(self, params, lr, beta):
+    def __init__(self, params, lr, beta,ent_c,ent_k):
         assert lr > 0
         defaults = dict(lr=lr)
         super(EntropyPerLayer, self).__init__(params, defaults)
@@ -22,6 +22,8 @@ class EntropyPerLayer(Optimizer):
             group['lr_hist'] = []   # Keep a history of learning rates (for debugging)
             group['beta'] = beta
             group['original_lr'] = lr
+            group['ent_c'] = ent_c
+            group['ent_k'] = ent_k
 
     @torch.no_grad()
     def step(self, closure=None):
@@ -64,7 +66,7 @@ class EntropyPerLayer(Optimizer):
             entropy_hist.append(ent)
             lr_hist.append(group['lr'])
 
-        if len(entropy_hist) >= 2:  # To get entropy diff, we need a history of at least 2
+        if len(entropy_hist) >= 3:  # To get entropy diff, we need a history of at least 2
             self._update_learning_rates()
 
     def get_history(self):
@@ -82,17 +84,21 @@ class EntropyPerLayer(Optimizer):
         # Iterate over layers to compute average entropy
         for group in self.param_groups:  # Each group is a layer
             entropy_hist = group['entropy_hist']
-            en_diff = abs(entropy_hist[-1] - entropy_hist[-2])  # Diff between last 2 values
+            en_diff = abs(entropy_hist[-1] - 2*entropy_hist[-2]+entropy_hist[-3])/2  # Diff between last 2 values
             en_diff_sum += en_diff
 
-        epsilon = 1e-5
+        epsilon = 1e-4
         avg_en_diff = (en_diff_sum + epsilon) / num_layers
 
         # Iterate over layers to update learning rates
         for group in self.param_groups:  # Each group is a layer
             entropy_hist = group['entropy_hist']
             beta = group['beta']
-            en_diff = abs(entropy_hist[-1] - entropy_hist[-2])
-            en_diff = (en_diff + avg_en_diff) / avg_en_diff
-            coeff = (en_diff * beta) / (1 + en_diff * beta)
-            group['lr'] = group['original_lr'] * coeff    # Learning rate update
+            ent_k = group['ent_k']
+            ent_c = group['ent_c']
+            en_diff = abs(entropy_hist[-1] - 2*entropy_hist[-2]+entropy_hist[-3])/2
+            # en_diff = (en_diff + avg_en_diff) / avg_en_diff
+            en_diff = en_diff / avg_en_diff
+            # coeff = (en_diff * beta) / (1 + en_diff * beta)
+            coeff = (2 / (1 + np.exp(-en_diff * beta))-1)*ent_k
+            group['lr'] = group['original_lr'] * coeff+ ent_c  # Learning rate update

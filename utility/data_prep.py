@@ -55,6 +55,25 @@ def get_mnist_preprocessed(data_dir, batch_size):
     # return trainloader, testloader
     return preprocessed_trainset, preprocessed_testset
 
+""" Loads MNIST, preprocesss and load into a dataloader. Training loop has no preprocessing steps: fast """
+def get_fashion_mnist_preprocessed(data_dir, batch_size):
+    transform = transforms.Compose(
+        [transforms.ToTensor(),     # Convert PIL image to tensor
+         transforms.Normalize((0.5), (0.5)),       # (mean1, mean2, mean3), (std1, std2, std3) for the 3 channels
+         ])
+
+    print('Preprocessing MNIST training set')
+    trainset = torchvision.datasets.FashionMNIST(root=data_dir, train=True, download=True, transform=transform)
+    preprocessed_trainset = preprocess_mnist(trainset)
+    # trainloader = torch.utils.data.DataLoader(preprocessed_trainset, batch_size=batch_size, shuffle=False, num_workers=0)
+
+    print('Preprocessing MNIST test set')
+    testset = torchvision.datasets.FashionMNIST(root=data_dir, train=False, download=True, transform=transform)
+    preprocessed_testset = preprocess_mnist(testset)
+    # testloader = torch.utils.data.DataLoader(preprocessed_testset, batch_size=batch_size, shuffle=False, num_workers=0)
+
+    # return trainloader, testloader
+    return preprocessed_trainset, preprocessed_testset
 
 def preprocess_mnist(dataset):
     batch_size = dataset.data.shape[0]  # To get a single batch that contains full dataset

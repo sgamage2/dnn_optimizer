@@ -13,7 +13,7 @@ from pprint import pprint
 # This keeps doing the computations on the same given device (eg: GPU)
 
 class EntropyPerNeuron(Optimizer):
-    def __init__(self, params, lr, beta):
+    def __init__(self, params, lr, beta,ent_c,ent_k):
         assert lr > 0
         defaults = dict(lr=lr)
         super(EntropyPerNeuron, self).__init__(params, defaults)
@@ -24,13 +24,14 @@ class EntropyPerNeuron(Optimizer):
             group['entropy_hist'] = []    # Each element is an np array with entropies of neurons. shape = (layer_nodes,)
             group['lr_hist'] = []    # Each element is an np array with learning rates of neurons. shape = (layer_nodes,)
             group['beta'] = beta
+            group['ent_k'] = ent_k
             # group['original_lr'] = lr
             for p in group['params']:
                 state = self.state[p]   # A dict that keeps state of each Parameter obj (biases and weights of layers)
                 state['step'] = 0
                 state['lr'] = torch.full_like(p, lr)    # A Tensor of same shape as Parameter filled with initial lr
                 state['original_lr'] = torch.full_like(p, lr)    # A Tensor of same shape as Parameter filled with initial lr
-
+                state['ent_c'] = torch.full_like(p, ent_c)
                 if self.device is None:
                     self.device = p.device
 
@@ -87,7 +88,7 @@ class EntropyPerNeuron(Optimizer):
             # print(f'---- lr_hist[-1]: {np.round(lr_hist[-1], 4)}')
             # pprint(lr_hist)
 
-        if len(entropy_hist) >= 2:  # To get entropy diff, we need a history of at least 2
+        if len(entropy_hist) >= 3:  # To get entropy diff, we need a history of at least 2
             self._update_learning_rates()
 
     def get_history(self):
@@ -115,22 +116,23 @@ class EntropyPerNeuron(Optimizer):
         # Iterate over layers to compute average entropy
         for group in self.param_groups:  # Each group is a layer
             entropy_hist = group['entropy_hist']
-            en_diff = np.abs(entropy_hist[-1] - entropy_hist[-2])  # Diff between last 2 ent values, shape = (L2,)
+            en_diff = np.abs(entropy_hist[-1] - 2*entropy_hist[-2]+entropy_hist[-3])/2  # Diff between last 2 ent values, shape = (L2,)
             en_diff_sum += np.sum(en_diff)
             num_nodes += en_diff.size
 
-        epsilon = 1e-5
+        epsilon = 1e-3
         avg_en_diff = (en_diff_sum + epsilon) / num_nodes   # scalar
 
         # Iterate parameters in each layer to update learning rates
         for group in self.param_groups:  # Each group is a layer
             entropy_hist = group['entropy_hist']
             beta = group['beta']
+            ent_k =group['ent_k']
 
-            en_diff = abs(entropy_hist[-1] - entropy_hist[-2])  # shape = (L2,)
-            en_diff = (en_diff + avg_en_diff) / avg_en_diff
+            en_diff = abs(entropy_hist[-1] - 2*entropy_hist[-2]+entropy_hist[-3]) /2 # shape = (L2,)
+            en_diff = (en_diff) / avg_en_diff
             coeffs = (en_diff * beta) / (1 + en_diff * beta)   # shape = (L2,)
-
+            coeffs = (2 / (1 + np.exp(-en_diff * beta))-1)*ent_k
             coeffs = torch.from_numpy(coeffs).float().to(self.device)
             coeffs_reshaped = coeffs.reshape(-1, 1) # Reshape needed for broadcast when multiplying with matrix
 
@@ -139,6 +141,7 @@ class EntropyPerNeuron(Optimizer):
 
             for p in group['params']:  # p = params. A Parameter object with biases or weights of a layer
                 state = self.state[p]
+                ent_c = state['ent_c']
                 # per_weight_lr = state['lr']
                 assert p.shape == state['lr'].shape
 
@@ -146,12 +149,12 @@ class EntropyPerNeuron(Optimizer):
 
                 # For the connection between two layers L1 --> L2
                 if p.ndim == 1:  # This Parameter is a vector of biases (shape = L2_nodes)
-                    state['lr'] = state['original_lr'] * coeffs
+                    state['lr'] = state['original_lr'] * coeffs+ent_c
                     # print(f'---- before ---- {per_weight_lr[0:8]}')
                     # per_weight_lr.mul_(coeffs)
                     # print(f'---- after ---- {per_weight_lr[0:8]}')
                     # print(f'---- after ---- {state["lr"][0:8]}')
                 elif p.ndim == 2:  # This Parameter is a Tensor of weights (shape = L2_nodes, L1_nodes)
-                    state['lr'] = state['original_lr'] * coeffs_reshaped
+                    state['lr'] = state['original_lr'] * coeffs_reshaped+ent_c
                     # per_weight_lr.mul_(coeffs_reshaped)
 

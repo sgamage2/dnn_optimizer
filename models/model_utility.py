@@ -188,13 +188,17 @@ def create_optimizer(optimizer_name, network, params):
         for group in param_groups:
             group['lr'] = learning_rate
         beta = params['ent_beta']
-        optimizer = optimizers.entropy_per_layer.EntropyPerLayer(param_groups, lr=learning_rate, beta=beta)
+        ent_c = params['ent_c']
+        ent_k = params['ent_k']
+        optimizer = optimizers.entropy_per_layer.EntropyPerLayer(param_groups, lr=learning_rate, beta=beta,ent_c=ent_c,ent_k=ent_k)
     elif optimizer_name == 'entropy_per_neuron':
         param_groups = network.group_params_by_layer()
         for group in param_groups:
             group['lr'] = learning_rate
         beta = params['ent_beta']
-        optimizer = optimizers.entropy_per_neuron.EntropyPerNeuron(param_groups, lr=learning_rate, beta=beta)
+        ent_c = params['ent_c']
+        ent_k = params['ent_k']
+        optimizer = optimizers.entropy_per_neuron.EntropyPerNeuron(param_groups, lr=learning_rate, beta=beta,ent_c=ent_c,ent_k=ent_k)
     else:
         assert False    # Unknown optimizer_name
 
