@@ -84,10 +84,10 @@ class EntropyPerLayer(Optimizer):
         # Iterate over layers to compute average entropy
         for group in self.param_groups:  # Each group is a layer
             entropy_hist = group['entropy_hist']
-            en_diff = abs(entropy_hist[-1] - 2*entropy_hist[-2]+entropy_hist[-3])/2  # Diff between last 2 values
+            en_diff = abs(entropy_hist[-1] - 2*entropy_hist[-2]+entropy_hist[-3])  # Diff between last 2 values
             en_diff_sum += en_diff
 
-        epsilon = 1e-4
+        epsilon = 1e-6
         avg_en_diff = (en_diff_sum + epsilon) / num_layers
 
         # Iterate over layers to update learning rates
@@ -96,7 +96,7 @@ class EntropyPerLayer(Optimizer):
             beta = group['beta']
             ent_k = group['ent_k']
             ent_c = group['ent_c']
-            en_diff = abs(entropy_hist[-1] - 2*entropy_hist[-2]+entropy_hist[-3])/2
+            en_diff = abs(entropy_hist[-1] - 2*entropy_hist[-2]+entropy_hist[-3])
             # en_diff = (en_diff + avg_en_diff) / avg_en_diff
             en_diff = en_diff / avg_en_diff
             # coeff = (en_diff * beta) / (1 + en_diff * beta)

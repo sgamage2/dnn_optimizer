@@ -116,11 +116,11 @@ class EntropyPerNeuron(Optimizer):
         # Iterate over layers to compute average entropy
         for group in self.param_groups:  # Each group is a layer
             entropy_hist = group['entropy_hist']
-            en_diff = np.abs(entropy_hist[-1] - 2*entropy_hist[-2]+entropy_hist[-3])/2  # Diff between last 2 ent values, shape = (L2,)
+            en_diff = np.abs(entropy_hist[-1] - 2*entropy_hist[-2]+entropy_hist[-3])  # Diff between last 2 ent values, shape = (L2,)
             en_diff_sum += np.sum(en_diff)
             num_nodes += en_diff.size
 
-        epsilon = 1e-3
+        epsilon = 1e-4
         avg_en_diff = (en_diff_sum + epsilon) / num_nodes   # scalar
 
         # Iterate parameters in each layer to update learning rates
@@ -129,7 +129,7 @@ class EntropyPerNeuron(Optimizer):
             beta = group['beta']
             ent_k =group['ent_k']
 
-            en_diff = abs(entropy_hist[-1] - 2*entropy_hist[-2]+entropy_hist[-3]) /2 # shape = (L2,)
+            en_diff = abs(entropy_hist[-1] - 2*entropy_hist[-2]+entropy_hist[-3])  # shape = (L2,)
             en_diff = (en_diff) / avg_en_diff
             coeffs = (en_diff * beta) / (1 + en_diff * beta)   # shape = (L2,)
             coeffs = (2 / (1 + np.exp(-en_diff * beta))-1)*ent_k
