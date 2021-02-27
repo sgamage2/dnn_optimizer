@@ -16,7 +16,7 @@ learning_rate: 0.06
 
 ent_c: 0.01
 ent_k: 2
-ent_beta: 1  # Param for entropy optimizers (for learning rule update)
+ent_beta: 3  # Param for entropy optimizers (for learning rule update)
 momentum: 0.1   # Used in sgd_momentum
 # Note: Define other optimizers, optimizer params as needed and add them to code in model_utility.create_optimizer()
 
