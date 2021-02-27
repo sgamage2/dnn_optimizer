@@ -98,7 +98,8 @@ class EntropyPerLayer(Optimizer):
             ent_c = group['ent_c']
             en_diff = abs(entropy_hist[-1] - 2*entropy_hist[-2]+entropy_hist[-3])
             # en_diff = (en_diff + avg_en_diff) / avg_en_diff
-            en_diff = en_diff / avg_en_diff
+            en_diff = en_diff / avg_en_diff / ent_k
             # coeff = (en_diff * beta) / (1 + en_diff * beta)
-            coeff = (2 / (1 + np.exp(-en_diff * beta))-1)*ent_k
-            group['lr'] = group['original_lr'] * coeff+ ent_c  # Learning rate update
+            coeff = (2 / (1 + np.exp(-en_diff * beta))-1)
+            group['lr'] = (group['original_lr']-ent_c) * coeff+ ent_c  # Learning rate update
+            print('---------',group['lr'])
