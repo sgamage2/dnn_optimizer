@@ -14,7 +14,7 @@ batch_size: 32 # 256
 optimizer: entropy_per_layer
 learning_rate: 0.06
 
-ent_c: 0.01
+ent_c: 0.001
 ent_k: 2
 ent_beta: 3  # Param for entropy optimizers (for learning rule update)
 momentum: 0.1   # Used in sgd_momentum

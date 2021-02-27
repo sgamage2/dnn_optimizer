@@ -130,9 +130,9 @@ class EntropyPerNeuron(Optimizer):
             ent_k =group['ent_k']
 
             en_diff = abs(entropy_hist[-1] - 2*entropy_hist[-2]+entropy_hist[-3])  # shape = (L2,)
-            en_diff = (en_diff) / avg_en_diff
-            coeffs = (en_diff * beta) / (1 + en_diff * beta)   # shape = (L2,)
-            coeffs = (2 / (1 + np.exp(-en_diff * beta))-1)*ent_k
+            en_diff = (en_diff) / avg_en_diff/ent_k
+            # coeffs = (en_diff * beta) / (1 + en_diff * beta)   # shape = (L2,)
+            coeffs = (2 / (1 + np.exp(-en_diff * beta))-1)
             coeffs = torch.from_numpy(coeffs).float().to(self.device)
             coeffs_reshaped = coeffs.reshape(-1, 1) # Reshape needed for broadcast when multiplying with matrix
 
@@ -149,12 +149,13 @@ class EntropyPerNeuron(Optimizer):
 
                 # For the connection between two layers L1 --> L2
                 if p.ndim == 1:  # This Parameter is a vector of biases (shape = L2_nodes)
-                    state['lr'] = state['original_lr'] * coeffs+ent_c
+                    state['lr'] = (state['original_lr']-ent_c) * coeffs+ent_c
                     # print(f'---- before ---- {per_weight_lr[0:8]}')
                     # per_weight_lr.mul_(coeffs)
                     # print(f'---- after ---- {per_weight_lr[0:8]}')
                     # print(f'---- after ---- {state["lr"][0:8]}')
                 elif p.ndim == 2:  # This Parameter is a Tensor of weights (shape = L2_nodes, L1_nodes)
-                    state['lr'] = state['original_lr'] * coeffs_reshaped+ent_c
+                    state['lr'] = (state['original_lr']-ent_c) * coeffs_reshaped+ent_c
+                    print(state['lr'])
                     # per_weight_lr.mul_(coeffs_reshaped)
 
